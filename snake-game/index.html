@@ -62,21 +62,24 @@
     box-shadow: 0 0 40px rgba(0,200,100,0.2);
     min-width: 260px;
   }
-  .modal h2 { color: #fff; font-size: 24px; margin-bottom: 8px; }
-  .modal .sub { color: #aaffaa; font-size: 15px; margin-bottom: 6px; }
-  .modal .score-line { color: #7fdbff; font-size: 28px; font-weight: 700; margin: 10px 0 24px; }
+  .modal h2 { color: #fff; font-size: 26px; margin-bottom: 6px; }
+  .modal .sub { color: #aaffaa; font-size: 15px; margin-bottom: 16px; }
+  .modal .points-label { color: #667; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+  .modal .score-line { color: #7fdbff; font-size: 58px; font-weight: 800; margin: 0 0 4px; line-height: 1; text-shadow: 0 0 24px rgba(127,219,255,0.55); }
+  .modal .points-word { color: #aaffaa; font-size: 15px; margin-bottom: 28px; font-weight: 600; letter-spacing: 1px; }
   .modal button {
     background: #2d7a2d;
     color: #fff;
     border: none;
-    padding: 12px 32px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 13px 36px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 1px;
   }
-  .modal button:hover { background: #3a9e3a; }
+  .modal button:hover { background: #3a9e3a; transform: scale(1.04); }
 </style>
 </head>
 <body>
@@ -95,7 +98,9 @@
   <div class="modal">
     <h2 id="modal-title">Game Over</h2>
     <div class="sub" id="modal-sub">Your score</div>
+    <div class="points-label">Points Scored</div>
     <div class="score-line" id="modal-score">0</div>
+    <div class="points-word" id="modal-pts-word">points</div>
     <button onclick="tryAgain()">Try Again</button>
   </div>
 </div>
@@ -231,6 +236,7 @@ function showModal(title, sub, finalScore) {
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-sub').textContent = sub;
   document.getElementById('modal-score').textContent = finalScore;
+  document.getElementById('modal-pts-word').textContent = finalScore === 1 ? 'point' : 'points';
   document.getElementById('modal').classList.add('show');
 }
 
