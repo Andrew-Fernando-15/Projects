@@ -9,6 +9,6 @@
   
   [View SNAKE - Game](https://Andrew-Fernando-15.github.io/Projects/snake-game/index.html)
   
-  [View SNAKE - Game](https://Andrew-Fernando-15.github.io/Projects/connect4-game/index.html)
+  [View CONNECT4 - Game](https://Andrew-Fernando-15.github.io/Projects/connect4-game/index.html)
 
 ---
