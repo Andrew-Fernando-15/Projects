@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect 4</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    min-height:100vh;
+    background:#0f0f1a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Segoe UI',sans-serif;
+  }
+  .box {
+    background:#12122a;
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 0 40px rgba(80,80,255,0.2);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+  }
+  #status { color:#aab; font-size:15px; font-weight:600; letter-spacing:.5px; min-height:22px; }
+  canvas { border-radius:10px; display:block; cursor:pointer; }
+
+  /* Mode picker screen */
+  .mode-screen {
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.85);
+    display:flex; align-items:center; justify-content:center;
+    z-index:20;
+  }
+  .mode-screen.hide { display:none; }
+  .mode-box {
+    background:#12122a;
+    border:1px solid #2a2a5a;
+    border-radius:18px;
+    padding:40px 48px;
+    text-align:center;
+    box-shadow:0 0 50px rgba(80,80,255,0.3);
+  }
+  .mode-box h2 { color:#fff; font-size:24px; margin-bottom:6px; }
+  .mode-box p { color:#667; font-size:13px; margin-bottom:28px; }
+  .mode-btns { display:flex; gap:14px; justify-content:center; }
+  .mode-btns button {
+    background:#1e1e4a;
+    color:#fff;
+    border:2px solid #3535aa;
+    padding:16px 28px;
+    border-radius:12px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .2s, border-color .2s;
+    min-width:130px;
+  }
+  .mode-btns button:hover { background:#3535aa; border-color:#5555dd; }
+  .mode-btns button span { display:block; font-size:26px; margin-bottom:6px; }
+
+  /* Result modal */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; z-index:10; }
+  .modal-overlay.show { display:flex; }
+  .modal { background:#12122a; border:1px solid #2a2a5a; border-radius:16px; padding:36px 44px; text-align:center; box-shadow:0 0 40px rgba(80,80,255,0.3); min-width:280px; }
+  .modal h2 { color:#fff; font-size:26px; margin-bottom:8px; }
+  .modal .result { font-size:30px; font-weight:700; margin:10px 0 6px; }
+  .modal .win-cells { font-size:13px; color:#778; margin-bottom:20px; min-height:18px; }
+  .modal-btns { display:flex; gap:10px; justify-content:center; }
+  .modal-btns button { background:#3535aa; color:#fff; border:none; padding:11px 24px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; transition:background .2s; }
+  .modal-btns button:hover { background:#4444cc; }
+  .modal-btns button.sec { background:#1e1e3a; }
+  .modal-btns button.sec:hover { background:#2a2a55; }
+</style>
+</head>
+<body>
+
+<!-- Mode picker -->
+<div class="mode-screen" id="modeScreen">
+  <div class="mode-box">
+    <h2>Connect 4</h2>
+    <p>Choose your game mode</p>
+    <div class="mode-btns">
+      <button onclick="startGame('cpu')"><span>🤖</span>vs CPU</button>
+      <button onclick="startGame('2p')"><span>👥</span>2 Players</button>
+    </div>
+  </div>
+</div>
+
+<div class="box">
+  <div id="status"></div>
+  <canvas id="c"></canvas>
+</div>
+
+<!-- Result modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Game Over</h2>
+    <div class="result" id="modal-result"></div>
+    <div class="win-cells" id="modal-cells"></div>
+    <div class="modal-btns">
+      <button onclick="tryAgain()">Play Again</button>
+      <button class="sec" onclick="changeMode()">Change Mode</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS=7, ROWS=6, CELL=70;
+const W=COLS*CELL, H=ROWS*CELL+80;
+let canvas,ctx,board,player,over,hoverCol,mode,winCells=[];
+
+function init(){
+  canvas=document.getElementById('c');
+  canvas.width=W; canvas.height=H;
+  ctx=canvas.getContext('2d');
+  canvas.addEventListener('mousemove',onMove);
+  canvas.addEventListener('click',onClick);
+  draw();
+}
+
+function startGame(m){
+  mode=m;
+  document.getElementById('modeScreen').classList.add('hide');
+  reset();
+}
+
+function reset(){
+  board=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+  player=1; over=false; hoverCol=-1; winCells=[];
+  setStatus(mode==='2p'?'🔴 Player 1\'s turn':'Your turn 🔴');
+  draw();
+}
+
+function setStatus(t){ document.getElementById('status').textContent=t; }
+
+function onMove(e){
+  if(over) return;
+  if(mode==='cpu'&&player!==1) return;
+  const rect=canvas.getBoundingClientRect();
+  hoverCol=Math.floor((e.clientX-rect.left)*(W/rect.width)/CELL);
+  draw();
+}
+
+function onClick(e){
+  if(over) return;
+  if(mode==='cpu'&&player!==1) return;
+  const rect=canvas.getBoundingClientRect();
+  const col=Math.floor((e.clientX-rect.left)*(W/rect.width)/CELL);
+  if(!drop(col,player)) return;
+  const wc=getWinCells(board,player);
+  if(wc){
+    winCells=wc; draw();
+    if(mode==='2p') showModal(player===1?'🔴 PLAYER 1 WINS!':'🟡 PLAYER 2 WINS!','#ef5350','');
+    else showModal('YOU WIN! 🎉','#4caf50','');
+    return;
+  }
+  if(isDraw()){ draw(); showModal("IT'S A DRAW!",'#fdd835',''); return; }
+  if(mode==='2p'){
+    player=player===1?2:1;
+    setStatus(player===1?'🔴 Player 1\'s turn':'🟡 Player 2\'s turn');
+    draw();
+  } else {
+    player=2; setStatus('CPU thinking... 🟡'); draw();
+    setTimeout(cpuMove,420);
+  }
+}
+
+function cpuMove(){
+  let col=bestMove();
+  if(col===-1) col=Math.random()*COLS|0;
+  drop(col,2);
+  const wc=getWinCells(board,2);
+  if(wc){ winCells=wc; draw(); showModal('CPU WINS 🤖','#fdd835',`Winning column: ${col+1}`); return; }
+  if(isDraw()){ draw(); showModal("IT'S A DRAW!",'#fdd835',''); return; }
+  player=1; setStatus('Your turn 🔴'); draw();
+}
+
+function bestMove(){
+  for(let c=0;c<COLS;c++){ const b=board.map(r=>[...r]); if(dropB(b,c,2)&&getWinCells(b,2)) return c; }
+  for(let c=0;c<COLS;c++){ const b=board.map(r=>[...r]); if(dropB(b,c,1)&&getWinCells(b,1)) return c; }
+  if(getRow(3)>=0) return 3;
+  return -1;
+}
+
+function drop(col,p){ return dropB(board,col,p); }
+function dropB(b,col,p){
+  for(let r=ROWS-1;r>=0;r--){ if(b[r][col]===0){ b[r][col]=p; return true; } }
+  return false;
+}
+function getRow(col){ for(let r=ROWS-1;r>=0;r--) if(board[r][col]===0) return r; return -1; }
+function isDraw(){ return board[0].every(c=>c!==0); }
+
+function getWinCells(b,p){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) for(const [dr,dc] of dirs){
+    let cells=[];
+    for(let i=0;i<4;i++){
+      const nr=r+dr*i,nc=c+dc*i;
+      if(nr<0||nr>=ROWS||nc<0||nc>=COLS||b[nr][nc]!==p){ cells=null; break; }
+      cells.push([nr,nc]);
+    }
+    if(cells) return cells;
+  }
+  return null;
+}
+
+function draw(){
+  ctx.fillStyle='#1a237e'; ctx.fillRect(0,0,W,H);
+
+  // hover highlight
+  const canHover = mode==='2p' || player===1;
+  if(!over&&canHover&&hoverCol>=0&&hoverCol<COLS){
+    ctx.fillStyle='rgba(255,255,255,0.07)';
+    ctx.fillRect(hoverCol*CELL,0,CELL,H);
+    const r=getRow(hoverCol);
+    if(r>=0){
+      ctx.fillStyle=player===1?'rgba(239,83,80,0.4)':'rgba(253,216,53,0.4)';
+      ctx.beginPath(); ctx.arc(hoverCol*CELL+CELL/2,40,24,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  // pieces
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const x=c*CELL+CELL/2, y=80+r*CELL+CELL/2;
+    const isWin=winCells.some(([wr,wc])=>wr===r&&wc===c);
+    ctx.fillStyle=board[r][c]===1?'#ef5350':board[r][c]===2?'#fdd835':'#111c44';
+    ctx.beginPath(); ctx.arc(x,y,28,0,Math.PI*2); ctx.fill();
+    // win glow
+    if(isWin){
+      ctx.save();
+      ctx.shadowColor=board[r][c]===1?'#ef5350':'#fdd835';
+      ctx.shadowBlur=20;
+      ctx.strokeStyle=board[r][c]===1?'#ff8a80':'#fff176';
+      ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(x,y,28,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    }
+    if(board[r][c]!==0){
+      ctx.fillStyle='rgba(255,255,255,0.18)';
+      ctx.beginPath(); ctx.arc(x-8,y-8,8,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  // grid lines
+  ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+  for(let c=1;c<COLS;c++){ ctx.beginPath(); ctx.moveTo(c*CELL,80); ctx.lineTo(c*CELL,H); ctx.stroke(); }
+}
+
+function showModal(title,color,cells){
+  over=true;
+  document.getElementById('modal-title').textContent=title;
+  const r=document.getElementById('modal-result');
+  r.textContent=''; r.style.color=color;
+  document.getElementById('modal-cells').textContent=cells;
+  document.getElementById('modal').classList.add('show');
+}
+
+function tryAgain(){
+  document.getElementById('modal').classList.remove('show');
+  reset();
+}
+
+function changeMode(){
+  document.getElementById('modal').classList.remove('show');
+  document.getElementById('modeScreen').classList.remove('hide');
+}
+
+init();
+</script>
+</body>
+</html>
