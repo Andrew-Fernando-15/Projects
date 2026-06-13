@@ -14,6 +14,13 @@
     justify-content:center;
     font-family:'Segoe UI',sans-serif;
   }
+
+  .layout {
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+  }
+
   .box {
     background:#12122a;
     border-radius:16px;
@@ -27,52 +34,139 @@
   #status { color:#aab; font-size:15px; font-weight:600; letter-spacing:.5px; min-height:22px; }
   canvas { border-radius:10px; display:block; cursor:pointer; }
 
-  /* Mode picker screen */
+  /* Right panel */
+  .right-panel {
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    width:220px;
+    min-width:220px;
+  }
+
+  .panel-card {
+    background:#12122a;
+    border:1px solid #2a2a5a;
+    border-radius:14px;
+    padding:18px 18px 16px;
+    box-shadow:0 0 24px rgba(80,80,255,0.1);
+    transition: border-color 0.3s;
+  }
+
+  .panel-card h3 {
+    font-size:10px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:#445;
+    margin-bottom:14px;
+  }
+
+  /* Result card — inline, no modal */
+  .result-card {
+    display:none;
+    border-radius:14px;
+    padding:20px 18px;
+    text-align:center;
+    animation: popIn 0.35s cubic-bezier(.34,1.56,.64,1);
+  }
+  .result-card.show { display:block; }
+
+  @keyframes popIn {
+    from { opacity:0; transform:scale(0.88) translateY(8px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+  }
+
+  .result-card.winner-red    { background:#2a1010; border:1px solid #ef5350; box-shadow:0 0 24px rgba(239,83,80,0.25); }
+  .result-card.winner-yellow { background:#2a2200; border:1px solid #fdd835; box-shadow:0 0 24px rgba(253,216,53,0.2); }
+  .result-card.winner-draw   { background:#181830; border:1px solid #3a3a7a; box-shadow:0 0 20px rgba(80,80,255,0.15); }
+
+  .result-icon  { font-size:36px; margin-bottom:6px; }
+  .result-title { font-size:16px; font-weight:800; margin-bottom:4px; letter-spacing:.5px; }
+  .result-card.winner-red    .result-title { color:#ff8a80; }
+  .result-card.winner-yellow .result-title { color:#fff176; }
+  .result-card.winner-draw   .result-title { color:#aab; }
+  .result-how   { font-size:11px; color:#667; margin-bottom:16px; }
+
+  .result-btns { display:flex; flex-direction:column; gap:8px; }
+  .result-btns button {
+    border:none; border-radius:8px; padding:9px 0;
+    font-size:13px; font-weight:700; cursor:pointer;
+    transition:background .2s, transform .1s;
+    width:100%;
+  }
+  .result-btns button:hover { transform:scale(1.03); }
+  .btn-again { background:#3535aa; color:#fff; }
+  .btn-again:hover { background:#4444cc; }
+  .btn-mode  { background:#1e1e3a; color:#778; }
+  .btn-mode:hover  { background:#2a2a55; color:#aab; }
+
+  /* Scoreboard */
+  .score-row {
+    display:flex; align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .score-row:last-child { margin-bottom:0; }
+  .score-who {
+    display:flex; align-items:center;
+    gap:8px; font-size:13px; color:#ccd; font-weight:600;
+  }
+  .dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+  .dot.red    { background:#ef5350; box-shadow:0 0 6px rgba(239,83,80,0.6); }
+  .dot.yellow { background:#fdd835; box-shadow:0 0 6px rgba(253,216,53,0.5); }
+  .score-val  { font-size:26px; font-weight:800; color:#e0e0ff; line-height:1; }
+  .score-divider { height:1px; background:rgba(255,255,255,0.06); margin:10px 0; }
+
+  /* History */
+  .history-list {
+    display:flex; flex-direction:column;
+    gap:7px; max-height:200px; overflow-y:auto;
+  }
+  .history-list::-webkit-scrollbar { width:4px; }
+  .history-list::-webkit-scrollbar-thumb { background:#2a2a5a; border-radius:4px; }
+
+  .history-item {
+    display:flex; align-items:center; gap:9px;
+    background:#1a1a38; border-radius:8px;
+    padding:8px 10px; font-size:12px;
+    border-left:3px solid transparent;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform:translateX(10px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  .history-item.red-win    { border-left-color:#ef5350; }
+  .history-item.yellow-win { border-left-color:#fdd835; }
+  .history-item.draw       { border-left-color:#556; }
+  .history-icon  { font-size:15px; flex-shrink:0; }
+  .history-winner { font-weight:700; color:#dde; font-size:12px; }
+  .history-detail { color:#556; font-size:11px; margin-top:1px; }
+  .history-empty  { color:#334; font-size:12px; text-align:center; padding:14px 0; font-style:italic; }
+
+  /* Mode picker */
   .mode-screen {
     position:fixed; inset:0;
     background:rgba(0,0,0,0.85);
-    display:flex; align-items:center; justify-content:center;
-    z-index:20;
+    display:flex; align-items:center; justify-content:center; z-index:20;
   }
   .mode-screen.hide { display:none; }
   .mode-box {
-    background:#12122a;
-    border:1px solid #2a2a5a;
-    border-radius:18px;
-    padding:40px 48px;
-    text-align:center;
-    box-shadow:0 0 50px rgba(80,80,255,0.3);
+    background:#12122a; border:1px solid #2a2a5a;
+    border-radius:18px; padding:40px 48px;
+    text-align:center; box-shadow:0 0 50px rgba(80,80,255,0.3);
   }
   .mode-box h2 { color:#fff; font-size:24px; margin-bottom:6px; }
-  .mode-box p { color:#667; font-size:13px; margin-bottom:28px; }
-  .mode-btns { display:flex; gap:14px; justify-content:center; }
+  .mode-box p  { color:#667; font-size:13px; margin-bottom:28px; }
+  .mode-btns   { display:flex; gap:14px; justify-content:center; }
   .mode-btns button {
-    background:#1e1e4a;
-    color:#fff;
+    background:#1e1e4a; color:#fff;
     border:2px solid #3535aa;
-    padding:16px 28px;
-    border-radius:12px;
-    font-size:15px;
-    font-weight:600;
-    cursor:pointer;
-    transition:background .2s, border-color .2s;
-    min-width:130px;
+    padding:16px 28px; border-radius:12px;
+    font-size:15px; font-weight:600; cursor:pointer;
+    transition:background .2s, border-color .2s; min-width:130px;
   }
   .mode-btns button:hover { background:#3535aa; border-color:#5555dd; }
   .mode-btns button span { display:block; font-size:26px; margin-bottom:6px; }
-
-  /* Result modal */
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; z-index:10; }
-  .modal-overlay.show { display:flex; }
-  .modal { background:#12122a; border:1px solid #2a2a5a; border-radius:16px; padding:36px 44px; text-align:center; box-shadow:0 0 40px rgba(80,80,255,0.3); min-width:280px; }
-  .modal h2 { color:#fff; font-size:26px; margin-bottom:8px; }
-  .modal .result { font-size:30px; font-weight:700; margin:10px 0 6px; }
-  .modal .win-cells { font-size:13px; color:#778; margin-bottom:20px; min-height:18px; }
-  .modal-btns { display:flex; gap:10px; justify-content:center; }
-  .modal-btns button { background:#3535aa; color:#fff; border:none; padding:11px 24px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; transition:background .2s; }
-  .modal-btns button:hover { background:#4444cc; }
-  .modal-btns button.sec { background:#1e1e3a; }
-  .modal-btns button.sec:hover { background:#2a2a55; }
 </style>
 </head>
 <body>
@@ -89,20 +183,47 @@
   </div>
 </div>
 
-<div class="box">
-  <div id="status"></div>
-  <canvas id="c"></canvas>
-</div>
+<div class="layout">
+  <!-- Game -->
+  <div class="box">
+    <div id="status"></div>
+    <canvas id="c"></canvas>
+  </div>
 
-<!-- Result modal -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <h2 id="modal-title">Game Over</h2>
-    <div class="result" id="modal-result"></div>
-    <div class="win-cells" id="modal-cells"></div>
-    <div class="modal-btns">
-      <button onclick="tryAgain()">Play Again</button>
-      <button class="sec" onclick="changeMode()">Change Mode</button>
+  <!-- Right panel -->
+  <div class="right-panel">
+
+    <!-- Inline result (replaces modal) -->
+    <div class="result-card" id="resultCard">
+      <div class="result-icon" id="result-icon"></div>
+      <div class="result-title" id="result-title"></div>
+      <div class="result-how"  id="result-how"></div>
+      <div class="result-btns">
+        <button class="btn-again" onclick="tryAgain()">Play Again</button>
+        <button class="btn-mode"  onclick="changeMode()">Change Mode</button>
+      </div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="panel-card">
+      <h3>Scoreboard</h3>
+      <div class="score-row">
+        <div class="score-who"><div class="dot red"></div><span id="label-p1">You</span></div>
+        <div class="score-val" id="pts-p1">0</div>
+      </div>
+      <div class="score-divider"></div>
+      <div class="score-row">
+        <div class="score-who"><div class="dot yellow"></div><span id="label-p2">CPU</span></div>
+        <div class="score-val" id="pts-p2">0</div>
+      </div>
+    </div>
+
+    <!-- Match history -->
+    <div class="panel-card">
+      <h3>Match History</h3>
+      <div class="history-list" id="historyList">
+        <div class="history-empty">No games yet</div>
+      </div>
     </div>
   </div>
 </div>
@@ -111,6 +232,8 @@
 const COLS=7, ROWS=6, CELL=70;
 const W=COLS*CELL, H=ROWS*CELL+80;
 let canvas,ctx,board,player,over,hoverCol,mode,winCells=[];
+let scores={p1:0,p2:0};
+let history=[], gameCount=0;
 
 function init(){
   canvas=document.getElementById('c');
@@ -123,13 +246,19 @@ function init(){
 
 function startGame(m){
   mode=m;
+  document.getElementById('label-p1').textContent='You';
+  document.getElementById('label-p2').textContent=m==='cpu'?'CPU':'Friend';
+  scores={p1:0,p2:0}; history=[]; gameCount=0;
+  updateScoreUI(); renderHistory();
   document.getElementById('modeScreen').classList.add('hide');
+  hideResult();
   reset();
 }
 
 function reset(){
   board=Array.from({length:ROWS},()=>Array(COLS).fill(0));
   player=1; over=false; hoverCol=-1; winCells=[];
+  hideResult();
   setStatus(mode==='2p'?'🔴 Player 1\'s turn':'Your turn 🔴');
   draw();
 }
@@ -153,11 +282,30 @@ function onClick(e){
   const wc=getWinCells(board,player);
   if(wc){
     winCells=wc; draw();
-    if(mode==='2p') showModal(player===1?'🔴 PLAYER 1 WINS!':'🟡 PLAYER 2 WINS!','#ef5350','');
-    else showModal('YOU WIN! 🎉','#4caf50','');
+    if(mode==='2p'){
+      scores[player===1?'p1':'p2']++;
+      updateScoreUI();
+      const label=player===1?'🔴 Player 1':'🟡 Player 2';
+      addHistory(player===1?'red-win':'yellow-win', label+' wins', describeWin(wc), player===1?'🔴':'🟡');
+      showResult(
+        player===1?'winner-red':'winner-yellow',
+        player===1?'🔴':'🟡',
+        player===1?'Player 1 Wins!':'Player 2 Wins!',
+        describeWin(wc)
+      );
+    } else {
+      scores.p1++; updateScoreUI();
+      addHistory('red-win','You won',describeWin(wc),'🔴');
+      showResult('winner-red','🎉','You Win!',describeWin(wc));
+    }
     return;
   }
-  if(isDraw()){ draw(); showModal("IT'S A DRAW!",'#fdd835',''); return; }
+  if(isDraw()){
+    draw();
+    addHistory('draw','Draw','Nobody wins','🤝');
+    showResult('winner-draw','🤝',"It's a Draw!",'All columns filled');
+    return;
+  }
   if(mode==='2p'){
     player=player===1?2:1;
     setStatus(player===1?'🔴 Player 1\'s turn':'🟡 Player 2\'s turn');
@@ -173,9 +321,72 @@ function cpuMove(){
   if(col===-1) col=Math.random()*COLS|0;
   drop(col,2);
   const wc=getWinCells(board,2);
-  if(wc){ winCells=wc; draw(); showModal('CPU WINS 🤖','#fdd835',`Winning column: ${col+1}`); return; }
-  if(isDraw()){ draw(); showModal("IT'S A DRAW!",'#fdd835',''); return; }
+  if(wc){
+    winCells=wc; draw();
+    scores.p2++; updateScoreUI();
+    addHistory('yellow-win','CPU wins',describeWin(wc),'🤖');
+    showResult('winner-yellow','🤖','CPU Wins!',describeWin(wc));
+    return;
+  }
+  if(isDraw()){
+    draw();
+    addHistory('draw','Draw','Nobody wins','🤝');
+    showResult('winner-draw','🤝',"It's a Draw!",'All columns filled');
+    return;
+  }
   player=1; setStatus('Your turn 🔴'); draw();
+}
+
+function showResult(cls, icon, title, how){
+  over=true;
+  setStatus('');
+  const card=document.getElementById('resultCard');
+  card.className='result-card show '+cls;
+  document.getElementById('result-icon').textContent=icon;
+  document.getElementById('result-title').textContent=title;
+  document.getElementById('result-how').textContent=how;
+}
+
+function hideResult(){
+  document.getElementById('resultCard').className='result-card';
+}
+
+function tryAgain(){ hideResult(); reset(); }
+function changeMode(){
+  hideResult();
+  document.getElementById('modeScreen').classList.remove('hide');
+}
+
+function describeWin(cells){
+  const rows=cells.map(c=>c[0]), cols=cells.map(c=>c[1]);
+  if(rows.every(r=>r===rows[0])) return `Row ${ROWS-rows[0]} — horizontal`;
+  if(cols.every(c=>c===cols[0])) return `Column ${cols[0]+1} — vertical`;
+  return 'Diagonal';
+}
+
+function addHistory(cls, winner, detail, icon){
+  gameCount++;
+  history.unshift({cls, winner, detail, icon});
+  if(history.length>10) history.pop();
+  renderHistory();
+}
+
+function renderHistory(){
+  const list=document.getElementById('historyList');
+  if(!history.length){ list.innerHTML='<div class="history-empty">No games yet</div>'; return; }
+  list.innerHTML=history.map(h=>`
+    <div class="history-item ${h.cls}">
+      <div class="history-icon">${h.icon}</div>
+      <div class="history-text">
+        <div class="history-winner">${h.winner}</div>
+        <div class="history-detail">${h.detail}</div>
+      </div>
+    </div>`).join('');
+}
+
+function updateScoreUI(){
+  document.getElementById('pts-p1').textContent=scores.p1;
+  document.getElementById('pts-p2').textContent=scores.p2;
 }
 
 function bestMove(){
@@ -209,9 +420,7 @@ function getWinCells(b,p){
 
 function draw(){
   ctx.fillStyle='#1a237e'; ctx.fillRect(0,0,W,H);
-
-  // hover highlight
-  const canHover = mode==='2p' || player===1;
+  const canHover=mode==='2p'||player===1;
   if(!over&&canHover&&hoverCol>=0&&hoverCol<COLS){
     ctx.fillStyle='rgba(255,255,255,0.07)';
     ctx.fillRect(hoverCol*CELL,0,CELL,H);
@@ -221,14 +430,11 @@ function draw(){
       ctx.beginPath(); ctx.arc(hoverCol*CELL+CELL/2,40,24,0,Math.PI*2); ctx.fill();
     }
   }
-
-  // pieces
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     const x=c*CELL+CELL/2, y=80+r*CELL+CELL/2;
     const isWin=winCells.some(([wr,wc])=>wr===r&&wc===c);
     ctx.fillStyle=board[r][c]===1?'#ef5350':board[r][c]===2?'#fdd835':'#111c44';
     ctx.beginPath(); ctx.arc(x,y,28,0,Math.PI*2); ctx.fill();
-    // win glow
     if(isWin){
       ctx.save();
       ctx.shadowColor=board[r][c]===1?'#ef5350':'#fdd835';
@@ -243,29 +449,14 @@ function draw(){
       ctx.beginPath(); ctx.arc(x-8,y-8,8,0,Math.PI*2); ctx.fill();
     }
   }
-
-  // grid lines
   ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
   for(let c=1;c<COLS;c++){ ctx.beginPath(); ctx.moveTo(c*CELL,80); ctx.lineTo(c*CELL,H); ctx.stroke(); }
-}
-
-function showModal(title,color,cells){
-  over=true;
-  document.getElementById('modal-title').textContent=title;
-  const r=document.getElementById('modal-result');
-  r.textContent=''; r.style.color=color;
-  document.getElementById('modal-cells').textContent=cells;
-  document.getElementById('modal').classList.add('show');
-}
-
-function tryAgain(){
-  document.getElementById('modal').classList.remove('show');
-  reset();
-}
-
-function changeMode(){
-  document.getElementById('modal').classList.remove('show');
-  document.getElementById('modeScreen').classList.remove('hide');
+  const empty=board.every(r=>r.every(c=>c===0));
+  if(!over&&mode&&empty){
+    ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,H/2-30,W,60);
+    ctx.fillStyle='white'; ctx.font='bold 14px Segoe UI,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Click a column to drop a piece',W/2,H/2+5);
+  }
 }
 
 init();
