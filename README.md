@@ -11,4 +11,6 @@
   
   [View CONNECT4 - Game](https://Andrew-Fernando-15.github.io/Projects/connect4-game/index.html)
 
+  [View WORDATTACK - Game](https://Andrew-Fernando-15.github.io/Projects/wordattack-game/index.html)
+
 ---
