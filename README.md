@@ -23,6 +23,8 @@ Projects/<br>
 ├── snake-game/<br>
 ├── connect4-game/<br>
 ├── wordattack-game/<br>
+├── portfolio-Docker/<br>
+├── URL to QR Generator/<br>
 └── README.md<br>
 
 
