@@ -13,4 +13,6 @@
 
   [View WORDATTACK - Game](https://Andrew-Fernando-15.github.io/Projects/wordattack-game/index.html)
 
+  [View PASS-GEN - Game](https://Andrew-Fernando-15.github.io/Projects/password-generator/index.html)
+
 ---
