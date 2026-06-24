@@ -101,45 +101,6 @@ body::before {
   box-shadow: 0 0 0 3px var(--input-focus);
 }
 
-/* ── Section / Size select ── */
-.section { margin-bottom: 8px; }
-.section-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-secondary);
-  margin-bottom: 10px;
-}
-
-.size-select {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--input-bg);
-  border: 1px solid var(--input-border);
-  border-radius: 12px;
-  color: var(--text-primary);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1l6 6 6-6' stroke='%239B5CF6' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.size-select:focus {
-  border-color: var(--violet);
-  box-shadow: 0 0 0 3px var(--input-focus);
-}
-.size-select option {
-  background: #14121e;
-  color: var(--text-primary);
-}
-
 /* ── QR body (preview area) ── */
 .qr-body {
   display: grid;
