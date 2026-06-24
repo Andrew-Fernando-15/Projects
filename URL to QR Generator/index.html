@@ -1,1 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator | Code Traversal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+    <div class="bg-layer" id="bgLayer1"></div>
+    <div class="bg-layer" id="bgLayer2"></div>
+
+    <main class="card-wrapper">
+        <div class="box">
+
+            <h1 class="title">Generate QR Code</h1>
+            <p class="subtitle">Turn any link or text into a scannable code</p>
+
+            <div class="qr-header">
+                <div class="input-group">
+                    <input type="text" placeholder="Type your text or URL" id="qr-text" class="phrase-input" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="qr-body"></div>
+
+            <div class="qr-footer">
+                <a href="" id="generateBtn" class="generate-btn">Generate</a>
+                <a href="" id="downloadBtn" class="generate-btn" download="QR_Code.png">Download</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
