@@ -36,11 +36,17 @@ A collection of small web-based projects built with HTML, CSS, and JavaScript �
 Each project lives in its own folder with its own `index.html`, `style.css`, and `script.js`.
 
 Projects/
+
 ├── password-generator/
+
 ├── tetris-game/
+
 ├── snake-game/
+
 ├── connect4-game/
+
 ├── wordattack-game/
+
 └── README.md
 
 
