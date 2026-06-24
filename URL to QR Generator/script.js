@@ -4,14 +4,9 @@ const generateBtn = document.getElementById('generateBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const qrContainer = document.querySelector('.qr-body');
 
-let size = sizes.value;
+const size = 200;
 generateBtn.addEventListener('click',(e)=>{
     e.preventDefault();
-    isEmptyInput();
-});
-
-sizes.addEventListener('change',(e)=>{
-    size = e.target.value;
     isEmptyInput();
 });
 
@@ -71,4 +66,4 @@ function rotateBg() {
     activeBg = activeBg === 1 ? 2 : 1;
 }
 
-setInterval(rotateBg, 8000); // change 8000 to however many milliseconds you want
+setInterval(rotateBg, 10000); // change 8000 to however many milliseconds you want
