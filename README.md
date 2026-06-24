@@ -11,7 +11,7 @@ A collection of small web-based projects built with HTML, CSS, and JavaScript �
 - [Snake](https://Andrew-Fernando-15.github.io/Projects/snake-game/index.html)
 - [Connect 4](https://Andrew-Fernando-15.github.io/Projects/connect4-game/index.html)
 - [Word Attack](https://Andrew-Fernando-15.github.io/Projects/wordattack-game/index.html)
-- [QrGen — URl to QR Generator](https://Andrew-Fernando-15.github.io/Projects/URL-to-QR-Generator/index.html)
+- [QrGen — URl to QR Generator](https://Andrew-Fernando-15.github.io/Projects/URL_to_QR_Generator/index.html)
 
 ## 📂 Structure
 
