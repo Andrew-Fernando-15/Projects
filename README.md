@@ -12,6 +12,7 @@ A collection of small web-based projects built with HTML, CSS, and JavaScript �
 - [Connect 4](https://Andrew-Fernando-15.github.io/Projects/connect4-game/index.html)
 - [Word Attack](https://Andrew-Fernando-15.github.io/Projects/wordattack-game/index.html)
 - [QrGen — URl to QR Generator](https://Andrew-Fernando-15.github.io/Projects/URL%20to%20QR%20Generator/index.html)
+- [Movie Recommendation System](https://Andrew-Fernando-15.github.io/Projects/movie-recommendation-system/index.html)
 
 ## 📂 Structure
 
@@ -25,6 +26,7 @@ Projects/<br>
 ├── wordattack-game/<br>
 ├── portfolio-Docker/<br>
 ├── URL to QR Generator/<br>
+├── Movie Recommendation System/<br>
 └── README.md<br>
 
 
