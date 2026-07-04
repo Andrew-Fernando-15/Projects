@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reel Match — Movie Recommendations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12131a;
+    --bg-raised: #1a1c26;
+    --gold: #e3b23c;
+    --velvet: #a5334a;
+    --paper: #f1eee6;
+    --paper-dim: #b9b6ac;
+    --slate: #6f7280;
+    --line: #2b2d3a;
+    --font-display: "Fraunces", serif;
+    --font-body: "Inter", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+  }
+  *{ box-sizing: border-box; }
+  body{ margin:0; background: var(--bg); color: var(--paper); font-family: var(--font-body); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .filmstrip{ height: 22px; background: repeating-linear-gradient(90deg, #060609 0 14px, transparent 14px 16px); background-color: #060609; position: relative; }
+  .filmstrip::before, .filmstrip::after{ content:""; position:absolute; top:0; bottom:0; width:100%; background-image: radial-gradient(circle at center, var(--bg) 5px, transparent 5.5px); background-size: 26px 22px; background-position: 7px center; }
+  header{ max-width: 980px; margin: 0 auto; padding: 64px 24px 40px; }
+  .eyebrow{ font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin: 0 0 18px; }
+  h1{ font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 5.5vw, 58px); line-height: 1.05; margin: 0 0 20px; max-width: 16ch; }
+  h1 em{ font-style: italic; font-weight: 500; color: var(--gold); }
+  .sub{ font-size: 17px; color: var(--paper-dim); max-width: 52ch; margin: 0; }
+  main{ max-width: 980px; margin: 0 auto; padding: 0 24px 100px; }
+  section.picker{ margin-top: 44px; position: relative; }
+  .section-label{ display:flex; align-items:baseline; gap: 12px; margin-bottom: 18px; }
+  .section-label .num{ font-family: var(--font-mono); color: var(--velvet); font-size: 13px; }
+  .section-label h2{ font-family: var(--font-display); font-weight: 600; font-size: 22px; margin: 0; }
+  #search{ width: 100%; background: var(--bg-raised); border: 1px solid var(--line); color: var(--paper); font-family: var(--font-body); font-size: 15px; padding: 14px 16px; border-radius: 6px; outline: none; transition: border-color .15s ease; }
+  #search:focus{ border-color: var(--gold); }
+  #search::placeholder{ color: var(--slate); }
+  .autocomplete{ position: absolute; z-index: 10; top: 100%; left:0; right:0; margin-top: 6px; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 8px; max-height: 320px; overflow-y: auto; box-shadow: 0 12px 28px rgba(0,0,0,0.45); display:none; }
+  .autocomplete.open{ display:block; }
+  .ac-item{ padding: 11px 16px; cursor: pointer; display:flex; justify-content: space-between; align-items:center; gap: 10px; border-bottom: 1px solid var(--line); }
+  .ac-item:last-child{ border-bottom: none; }
+  .ac-item:hover, .ac-item.hi{ background: rgba(227,178,60,0.1); }
+  .ac-item .t{ font-size: 14px; }
+  .ac-item .y{ font-family: var(--font-mono); font-size: 11px; color: var(--slate); flex-shrink:0; display:flex; align-items:center; gap:6px; }
+  .ac-item .g{ font-family: var(--font-mono); font-size: 10px; color: var(--slate); display:block; margin-top:2px; }
+  .badge{ font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 3px; }
+  .badge.movie{ background: rgba(227,178,60,0.12); color: var(--gold); }
+  .badge.series{ background: rgba(165,51,74,0.15); color: #e08599; }
+  .ac-empty{ padding: 14px 16px; color: var(--slate); font-size: 13px; }
+  .watched{ margin-top: 16px; display:flex; flex-wrap: wrap; gap: 8px; min-height: 0; }
+  .pill{ display:flex; align-items:center; gap: 8px; background: var(--bg-raised); border: 1px solid var(--line); border-left: 3px solid var(--gold); padding: 8px 8px 8px 12px; border-radius: 20px; font-size: 13px; }
+  .pill button{ background: none; border: none; color: var(--slate); cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 4px; }
+  .pill button:hover{ color: var(--velvet); }
+  .hint{ font-family: var(--font-mono); font-size: 12px; color: var(--slate); margin-top: 14px; }
+  section.results{ margin-top: 56px; }
+  .profile-banner{ display:flex; align-items:center; gap: 10px; flex-wrap: wrap; background: var(--bg-raised); border: 1px solid var(--line); border-left: 3px solid var(--gold); padding: 14px 18px; border-radius: 6px; margin-bottom: 28px; }
+  .profile-banner .label{ font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.08em; margin-right: 4px; }
+  .gchip{ font-family: var(--font-mono); font-size: 11px; padding: 5px 10px; border-radius: 4px; background: rgba(227,178,60,0.1); color: var(--gold); border: 1px solid rgba(227,178,60,0.3); }
+  .stubs{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+  .stub{ position: relative; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; }
+  .stub .side{ width: 78px; flex-shrink: 0; display:flex; flex-direction: column; align-items:center; justify-content:center; border-right: 2px dashed var(--bg); position: relative; color: var(--bg); }
+  .stub .side .pct{ font-family: var(--font-mono); font-weight: 500; font-size: 20px; transform: rotate(-90deg); white-space: nowrap; letter-spacing: 0.02em; }
+  .stub .side::before, .stub .side::after{ content:""; position:absolute; width: 14px; height: 14px; background: var(--bg); border-radius: 50%; right: -8px; }
+  .stub .side::before{ top: -8px; }
+  .stub .side::after{ bottom: -8px; }
+  .stub .body{ padding: 16px 18px; flex: 1; min-width: 0; }
+  .stub .title{ font-family: var(--font-display); font-weight: 600; font-size: 17px; margin: 0 0 2px; }
+  .stub .yr{ font-family: var(--font-mono); font-size: 12px; color: var(--slate); margin-bottom: 10px; }
+  .stub .reasons{ display:flex; flex-wrap: wrap; gap: 6px; }
+  .chip{ font-family: var(--font-mono); font-size: 10.5px; padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--paper-dim); border: 1px solid var(--line); }
+  .empty{ color: var(--slate); font-size: 14px; padding: 40px 0; text-align: center; border: 1px dashed var(--line); border-radius: 8px; }
+  footer{ text-align:center; padding: 30px 24px 50px; color: var(--slate); font-family: var(--font-mono); font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="filmstrip"></div>
+
+<header>
+  <p class="eyebrow">Reel Match · 500+ movies &amp; series, built in</p>
+  <h1>Tell us what you've <em>already watched</em> — we'll roll the reel for what's next.</h1>
+  <p class="sub">Add a few movies or shows you've enjoyed — from classics to 2025 releases. We build your genre profile from them and recommend 10 titles that match it. No accounts, no API keys.</p>
+</header>
+
+<main>
+  <section class="picker">
+    <div class="section-label"><span class="num">01</span><h2>What have you watched?</h2></div>
+    <input id="search" type="text" placeholder="Start typing a movie title…" autocomplete="off">
+    <div class="autocomplete" id="autocomplete"></div>
+    <div class="watched" id="watched"></div>
+    <p class="hint" id="hint">Add at least one movie to see recommendations.</p>
+  </section>
+
+  <section class="results" id="resultsSection" style="display:none;">
+    <div class="section-label"><span class="num">02</span><h2>Recommended for you</h2></div>
+    <div class="profile-banner" id="profileBanner"></div>
+    <div class="stubs" id="stubs"></div>
+  </section>
+</main>
+
+<footer>REEL MATCH — RECOMMENDATIONS COMPUTED CLIENT-SIDE FROM A BUILT-IN CATALOG OF CURATED TITLES</footer>
+
+<script>
+const PALETTE = ["#e3b23c", "#a5334a", "#3c7a89", "#7a5c9e", "#c46b3a", "#4c7a3c"];
+
+const RAW = [
+["The Godfather",1972,"Crime|Drama","movie"],
+["The Godfather Part II",1974,"Crime|Drama","movie"],
+["Goodfellas",1990,"Crime|Drama","movie"],
+["Casino",1995,"Crime|Drama","movie"],
+["Heat",1995,"Crime|Thriller|Drama","movie"],
+["Pulp Fiction",1994,"Crime|Drama","movie"],
+["Reservoir Dogs",1992,"Crime|Thriller","movie"],
+["The Departed",2006,"Crime|Thriller|Drama","movie"],
+["The Wolf of Wall Street",2013,"Crime|Comedy|Drama","movie"],
+["No Country for Old Men",2007,"Crime|Thriller|Drama","movie"],
+["Fargo",1996,"Crime|Comedy|Thriller","movie"],
+["Zodiac",2007,"Crime|Mystery|Thriller","movie"],
+["Prisoners",2013,"Crime|Thriller|Mystery","movie"],
+["Shutter Island",2010,"Mystery|Thriller|Drama","movie"],
+["The Silence of the Lambs",1991,"Crime|Thriller|Horror","movie"],
+["Seven Psychopaths",2012,"Crime|Comedy|Thriller","movie"],
+["Sicario",2015,"Crime|Thriller|Drama","movie"],
+["The Usual Suspects",1995,"Crime|Mystery|Thriller","movie"],
+["Rear Window",1954,"Mystery|Thriller","movie"],
+["Psycho",1960,"Horror|Mystery|Thriller","movie"],
+["Se7en",1995,"Crime|Thriller|Mystery","movie"],
+["Gone Girl",2014,"Thriller|Mystery|Drama","movie"],
+["Knives Out",2019,"Mystery|Comedy|Crime","movie"],
+["Glass Onion",2022,"Mystery|Comedy|Crime","movie"],
+["Memento",2000,"Thriller|Mystery","movie"],
+["The Big Lebowski",1998,"Comedy|Crime","movie"],
+["American History X",1998,"Drama|Crime","movie"],
+["Trainspotting",1996,"Drama|Crime","movie"],
+["The Town",2010,"Crime|Thriller|Drama","movie"],
+["Hell or High Water",2016,"Crime|Thriller|Drama","movie"],
+["Uncut Gems",2019,"Crime|Thriller|Drama","movie"],
+["Nightcrawler",2014,"Crime|Thriller|Drama","movie"],
+["Drive",2011,"Crime|Thriller|Drama","movie"],
+["A History of Violence",2005,"Crime|Thriller|Drama","movie"],
+["Training Day",2001,"Crime|Thriller|Drama","movie"],
+["American Gangster",2007,"Crime|Drama","movie"],
+["Layer Cake",2004,"Crime|Thriller","movie"],
+["Lock, Stock and Two Smoking Barrels",1998,"Crime|Comedy","movie"],
+["Snatch",2000,"Crime|Comedy","movie"],
+["The Killing of a Sacred Deer",2017,"Thriller|Drama|Mystery","movie"],
+["Wind River",2017,"Crime|Thriller|Mystery","movie"],
+["The Dark Knight",2008,"Action|Crime|Drama","movie"],
+["The Dark Knight Rises",2012,"Action|Crime|Drama","movie"],
+["Mad Max: Fury Road",2015,"Action|Sci-Fi|Adventure","movie"],
+["Furiosa: A Mad Max Saga",2024,"Action|Sci-Fi|Adventure","movie"],
+["John Wick",2014,"Action|Thriller|Crime","movie"],
+["John Wick: Chapter 4",2023,"Action|Thriller|Crime","movie"],
+["Kill Bill: Vol. 1",2003,"Action|Crime|Thriller","movie"],
+["The Bourne Identity",2002,"Action|Thriller|Mystery","movie"],
+["Mission: Impossible - Fallout",2018,"Action|Thriller|Adventure","movie"],
+["Mission: Impossible - Dead Reckoning Part One",2023,"Action|Thriller|Adventure","movie"],
+["Die Hard",1988,"Action|Thriller","movie"],
+["Speed",1994,"Action|Thriller","movie"],
+["The Raid",2011,"Action|Thriller|Crime","movie"],
+["Kingsman: The Secret Service",2014,"Action|Comedy|Thriller","movie"],
+["Baby Driver",2017,"Action|Crime|Music","movie"],
+["Gladiator",2000,"Action|Drama|History","movie"],
+["Gladiator II",2024,"Action|Drama|History","movie"],
+["Indiana Jones and the Raiders of the Lost Ark",1981,"Action|Adventure","movie"],
+["Pirates of the Caribbean: The Curse of the Black Pearl",2003,"Adventure|Fantasy|Action","movie"],
+["Star Wars: A New Hope",1977,"Sci-Fi|Adventure|Action","movie"],
+["The Empire Strikes Back",1980,"Sci-Fi|Adventure|Action","movie"],
+["Star Wars: The Force Awakens",2015,"Sci-Fi|Adventure|Action","movie"],
+["Top Gun",1986,"Action|Drama","movie"],
+["Top Gun: Maverick",2022,"Action|Drama","movie"],
+["The Matrix",1999,"Sci-Fi|Action","movie"],
+["Edge of Tomorrow",2014,"Sci-Fi|Action|Adventure","movie"],
+["Mad Max 2: The Road Warrior",1981,"Action|Sci-Fi|Adventure","movie"],
+["The Great Escape",1963,"Action|Adventure|War","movie"],
+["Skyfall",2012,"Action|Thriller|Adventure","movie"],
+["Casino Royale",2006,"Action|Thriller|Adventure","movie"],
+["The Avengers",2012,"Action|Sci-Fi|Adventure","movie"],
+["Avengers: Endgame",2019,"Action|Sci-Fi|Adventure","movie"],
+["Deadpool",2016,"Action|Comedy|Sci-Fi","movie"],
+["Deadpool & Wolverine",2024,"Action|Comedy|Sci-Fi","movie"],
+["Spider-Man: No Way Home",2021,"Action|Sci-Fi|Adventure","movie"],
+["Black Panther",2018,"Action|Sci-Fi|Adventure","movie"],
+["Civil War",2024,"Action|Drama|Thriller","movie"],
+["Extraction",2020,"Action|Thriller","movie"],
+["The Fall Guy",2024,"Action|Comedy|Romance","movie"],
+["Inception",2010,"Sci-Fi|Action|Thriller","movie"],
+["Interstellar",2014,"Sci-Fi|Drama|Adventure","movie"],
+["Blade Runner",1982,"Sci-Fi|Mystery|Drama","movie"],
+["Blade Runner 2049",2017,"Sci-Fi|Drama|Mystery","movie"],
+["2001: A Space Odyssey",1968,"Sci-Fi|Adventure","movie"],
+["Alien",1979,"Sci-Fi|Horror","movie"],
+["Aliens",1986,"Sci-Fi|Action|Horror","movie"],
+["Alien: Romulus",2024,"Sci-Fi|Horror","movie"],
+["Dune",2021,"Sci-Fi|Adventure|Drama","movie"],
+["Dune: Part Two",2024,"Sci-Fi|Adventure|Drama","movie"],
+["Arrival",2016,"Sci-Fi|Drama|Mystery","movie"],
+["Ex Machina",2014,"Sci-Fi|Drama|Thriller","movie"],
+["Her",2013,"Sci-Fi|Romance|Drama","movie"],
+["Minority Report",2002,"Sci-Fi|Action|Mystery","movie"],
+["Children of Men",2006,"Sci-Fi|Drama|Thriller","movie"],
+["District 9",2009,"Sci-Fi|Action|Thriller","movie"],
+["Snowpiercer",2013,"Sci-Fi|Action|Thriller","movie"],
+["A Clockwork Orange",1971,"Crime|Sci-Fi|Drama","movie"],
+["Jurassic Park",1993,"Sci-Fi|Adventure","movie"],
+["Back to the Future",1985,"Sci-Fi|Adventure|Comedy","movie"],
+["Avatar",2009,"Sci-Fi|Adventure|Action","movie"],
+["Avatar: The Way of Water",2022,"Sci-Fi|Adventure|Action","movie"],
+["E.T. the Extra-Terrestrial",1982,"Sci-Fi|Adventure|Family","movie"],
+["The Martian",2015,"Sci-Fi|Adventure|Drama","movie"],
+["Everything Everywhere All at Once",2022,"Sci-Fi|Comedy|Drama","movie"],
+["Oppenheimer",2023,"Drama|History","movie"],
+["Poor Things",2023,"Sci-Fi|Comedy|Drama","movie"],
+["The Substance",2024,"Horror|Sci-Fi|Drama","movie"],
+["A Quiet Place",2018,"Horror|Sci-Fi|Thriller","movie"],
+["A Quiet Place: Day One",2024,"Horror|Sci-Fi|Thriller","movie"],
+["28 Days Later",2002,"Horror|Sci-Fi|Thriller","movie"],
+["Godzilla Minus One",2023,"Sci-Fi|Action|Drama","movie"],
+["Toy Story",1995,"Animation|Family|Comedy","movie"],
+["Finding Nemo",2003,"Animation|Family|Adventure","movie"],
+["Up",2009,"Animation|Family|Adventure","movie"],
+["Inside Out",2015,"Animation|Family|Comedy|Drama","movie"],
+["Inside Out 2",2024,"Animation|Family|Comedy|Drama","movie"],
+["Coco",2017,"Animation|Family|Music","movie"],
+["The Lion King",1994,"Animation|Family|Drama","movie"],
+["Spirited Away",2001,"Animation|Fantasy|Family","movie"],
+["Your Name",2016,"Animation|Romance|Fantasy","movie"],
+["WALL-E",2008,"Animation|Sci-Fi|Family","movie"],
+["Shrek",2001,"Animation|Comedy|Family","movie"],
+["The Incredibles",2004,"Animation|Family|Action","movie"],
+["Zootopia",2016,"Animation|Family|Comedy","movie"],
+["Spider-Man: Into the Spider-Verse",2018,"Animation|Action|Adventure","movie"],
+["Spider-Man: Across the Spider-Verse",2023,"Animation|Action|Adventure","movie"],
+["The Boy and the Heron",2023,"Animation|Fantasy|Drama","movie"],
+["Moana",2016,"Animation|Family|Adventure","movie"],
+["Moana 2",2024,"Animation|Family|Adventure","movie"],
+["Frozen",2013,"Animation|Family|Musical","movie"],
+["Frozen II",2019,"Animation|Family|Musical","movie"],
+["Encanto",2021,"Animation|Family|Musical","movie"],
+["Wish",2023,"Animation|Family|Musical","movie"],
+["Ratatouille",2007,"Animation|Family|Comedy","movie"],
+["Wreck-It Ralph",2012,"Animation|Family|Comedy","movie"],
+["How to Train Your Dragon",2010,"Animation|Family|Adventure","movie"],
+["Kung Fu Panda",2008,"Animation|Family|Comedy","movie"],
+["The Iron Giant",1999,"Animation|Family|Sci-Fi","movie"],
+["Grave of the Fireflies",1988,"Animation|Drama|War","movie"],
+["Princess Mononoke",1997,"Animation|Fantasy|Adventure","movie"],
+["Akira",1988,"Animation|Sci-Fi|Action","movie"],
+["Harry Potter and the Sorcerer's Stone",2001,"Fantasy|Family|Adventure","movie"],
+["Harry Potter and the Deathly Hallows: Part 2",2011,"Fantasy|Family|Adventure","movie"],
+["The Lord of the Rings: The Fellowship of the Ring",2001,"Fantasy|Adventure|Drama","movie"],
+["The Lord of the Rings: The Two Towers",2002,"Fantasy|Adventure|Drama","movie"],
+["The Lord of the Rings: The Return of the King",2003,"Fantasy|Adventure|Drama","movie"],
+["Pan's Labyrinth",2006,"Fantasy|Drama|War","movie"],
+["The Princess Bride",1987,"Fantasy|Romance|Comedy","movie"],
+["Edward Scissorhands",1990,"Fantasy|Romance|Drama","movie"],
+["Big Fish",2003,"Fantasy|Drama|Adventure","movie"],
+["The Shape of Water",2017,"Fantasy|Drama|Romance","movie"],
+["Ghostbusters",1984,"Comedy|Fantasy|Sci-Fi","movie"],
+["Groundhog Day",1993,"Comedy|Fantasy|Romance","movie"],
+["The Chronicles of Narnia: The Lion, the Witch and the Wardrobe",2005,"Fantasy|Family|Adventure","movie"],
+["Jumanji",1995,"Adventure|Fantasy|Family","movie"],
+["Wicked",2024,"Fantasy|Musical|Romance","movie"],
+["Wonka",2023,"Fantasy|Family|Musical","movie"],
+["Barbie",2023,"Fantasy|Comedy|Adventure","movie"],
+["Nosferatu",2024,"Horror|Fantasy|Drama","movie"],
+["Get Out",2017,"Horror|Thriller|Mystery","movie"],
+["Us",2019,"Horror|Thriller|Mystery","movie"],
+["The Shining",1980,"Horror|Drama","movie"],
+["Hereditary",2018,"Horror|Drama|Mystery","movie"],
+["The Conjuring",2013,"Horror|Thriller|Mystery","movie"],
+["It",2017,"Horror|Fantasy|Drama","movie"],
+["The Exorcist",1973,"Horror|Drama","movie"],
+["Halloween",1978,"Horror|Thriller","movie"],
+["Midsommar",2019,"Horror|Drama|Mystery","movie"],
+["Longlegs",2024,"Horror|Thriller|Crime","movie"],
+["Sinners",2025,"Horror|Drama|Thriller","movie"],
+["Talk to Me",2023,"Horror|Thriller","movie"],
+["Barbarian",2022,"Horror|Thriller|Mystery","movie"],
+["The Witch",2015,"Horror|Drama|Mystery","movie"],
+["It Follows",2014,"Horror|Thriller","movie"],
+["Scream",1996,"Horror|Mystery|Thriller","movie"],
+["Evil Dead",1981,"Horror","movie"],
+["Schindler's List",1993,"Drama|History|War","movie"],
+["Saving Private Ryan",1998,"War|Drama","movie"],
+["Forrest Gump",1994,"Drama|Romance|Comedy","movie"],
+["Fight Club",1999,"Drama|Thriller","movie"],
+["Whiplash",2014,"Drama|Music","movie"],
+["The Social Network",2010,"Drama|Biography","movie"],
+["The Grand Budapest Hotel",2014,"Comedy|Drama","movie"],
+["Moonrise Kingdom",2012,"Comedy|Romance|Drama","movie"],
+["Good Will Hunting",1997,"Drama","movie"],
+["A Beautiful Mind",2001,"Drama|Biography","movie"],
+["The Pursuit of Happyness",2006,"Drama|Biography","movie"],
+["Dead Poets Society",1989,"Drama","movie"],
+["The Green Mile",1999,"Drama|Fantasy|Crime","movie"],
+["The Shawshank Redemption",1994,"Drama|Crime","movie"],
+["One Flew Over the Cuckoo's Nest",1975,"Drama","movie"],
+["Requiem for a Dream",2000,"Drama","movie"],
+["Little Miss Sunshine",2006,"Comedy|Drama","movie"],
+["Juno",2007,"Comedy|Drama","movie"],
+["Lady Bird",2017,"Comedy|Drama","movie"],
+["The Perks of Being a Wallflower",2012,"Drama|Romance","movie"],
+["Eighth Grade",2018,"Comedy|Drama","movie"],
+["Moonlight",2016,"Drama","movie"],
+["Manchester by the Sea",2016,"Drama","movie"],
+["The Holdovers",2023,"Comedy|Drama","movie"],
+["Past Lives",2023,"Drama|Romance","movie"],
+["Anatomy of a Fall",2023,"Drama|Mystery|Crime","movie"],
+["American Fiction",2023,"Comedy|Drama","movie"],
+["The Zone of Interest",2023,"Drama|History|War","movie"],
+["Killers of the Flower Moon",2023,"Crime|Drama|History","movie"],
+["Anora",2024,"Comedy|Drama","movie"],
+["The Brutalist",2024,"Drama|History","movie"],
+["Conclave",2024,"Drama|Mystery|Thriller","movie"],
+["A Complete Unknown",2024,"Drama|Music|Biography","movie"],
+["Challengers",2024,"Drama|Romance|Sports","movie"],
+["12 Years a Slave",2013,"Drama|History|Biography","movie"],
+["The Pianist",2002,"Drama|War|History","movie"],
+["There Will Be Blood",2007,"Drama","movie"],
+["Parasite",2019,"Thriller|Drama|Comedy","movie"],
+["Marriage Story",2019,"Drama|Romance","movie"],
+["The Room",2019,"Drama|Thriller","movie"],
+["Titanic",1997,"Romance|Drama","movie"],
+["Eternal Sunshine of the Spotless Mind",2004,"Romance|Drama|Sci-Fi","movie"],
+["Amelie",2001,"Comedy|Romance","movie"],
+["When Harry Met Sally",1989,"Romance|Comedy","movie"],
+["Notting Hill",1999,"Romance|Comedy","movie"],
+["Pride and Prejudice",2005,"Romance|Drama","movie"],
+["Before Sunrise",1995,"Romance|Drama","movie"],
+["500 Days of Summer",2009,"Romance|Comedy|Drama","movie"],
+["The Notebook",2004,"Romance|Drama","movie"],
+["Crazy Rich Asians",2018,"Romance|Comedy","movie"],
+["Silver Linings Playbook",2012,"Romance|Comedy|Drama","movie"],
+["La La Land",2016,"Musical|Romance|Drama","movie"],
+["Call Me By Your Name",2017,"Romance|Drama","movie"],
+["Brokeback Mountain",2005,"Romance|Drama|Western","movie"],
+["Carol",2015,"Romance|Drama","movie"],
+["Anyone But You",2023,"Romance|Comedy","movie"],
+["The Idea of You",2024,"Romance|Comedy|Drama","movie"],
+["Superbad",2007,"Comedy","movie"],
+["Bridesmaids",2011,"Comedy","movie"],
+["The Hangover",2009,"Comedy","movie"],
+["Anchorman",2004,"Comedy","movie"],
+["Step Brothers",2008,"Comedy","movie"],
+["Dumb and Dumber",1994,"Comedy","movie"],
+["Some Like It Hot",1959,"Comedy|Romance","movie"],
+["Booksmart",2019,"Comedy|Drama","movie"],
+["The Truman Show",1998,"Comedy|Drama|Sci-Fi","movie"],
+["Braveheart",1995,"History|Drama|War","movie"],
+["Lawrence of Arabia",1962,"History|Adventure|War","movie"],
+["Dunkirk",2017,"War|Action|History","movie"],
+["1917",2019,"War|Drama","movie"],
+["Apocalypse Now",1979,"War|Drama","movie"],
+["Full Metal Jacket",1987,"War|Drama","movie"],
+["Black Hawk Down",2001,"War|Action|History","movie"],
+["Hacksaw Ridge",2016,"War|Drama|History","movie"],
+["Inglourious Basterds",2009,"War|Drama","movie"],
+["Django Unchained",2012,"Western|Drama","movie"],
+["Casablanca",1942,"Romance|Drama|War","movie"],
+["Unforgiven",1992,"Western|Drama","movie"],
+["The Good, the Bad and the Ugly",1966,"Western|Adventure","movie"],
+["True Grit",2010,"Western|Drama|Adventure","movie"],
+["Butch Cassidy and the Sundance Kid",1969,"Western|Adventure|Comedy","movie"],
+["Rocky",1976,"Drama|Sports","movie"],
+["Raging Bull",1980,"Drama|Sports","movie"],
+["The Fighter",2010,"Drama|Sports","movie"],
+["Rush",2013,"Drama|Sports|Action","movie"],
+["Moneyball",2011,"Drama|Sports","movie"],
+["Ford v Ferrari",2019,"Drama|Sports|Action","movie"],
+["Creed",2015,"Drama|Sports","movie"],
+["Miracle",2004,"Drama|Sports","movie"],
+["Coach Carter",2005,"Drama|Sports","movie"],
+["F1",2025,"Drama|Sports|Action","movie"],
+["Singin' in the Rain",1952,"Comedy|Musical|Romance","movie"],
+["The Sound of Music",1965,"Musical|Family|Drama","movie"],
+["West Side Story",1961,"Musical|Romance|Drama","movie"],
+["Chicago",2002,"Musical|Crime|Comedy","movie"],
+["A Star Is Born",2018,"Musical|Drama|Romance","movie"],
+["Bohemian Rhapsody",2018,"Music|Biography|Drama","movie"],
+["Rocketman",2019,"Music|Biography|Drama","movie"],
+["Once",2007,"Music|Romance|Drama","movie"],
+["March of the Penguins",2005,"Documentary|Family","movie"],
+["Free Solo",2018,"Documentary|Adventure","movie"],
+["Won't You Be My Neighbor?",2018,"Documentary|Biography","movie"],
+["13th",2016,"Documentary|History","movie"],
+["Icarus",2017,"Documentary","movie"],
+["My Octopus Teacher",2020,"Documentary|Nature","movie"],
+["Amy",2015,"Documentary|Music|Biography","movie"],
+["Paddington",2014,"Family|Comedy|Adventure","movie"],
+["Home Alone",1990,"Family|Comedy","movie"],
+["The Sandlot",1993,"Family|Comedy|Sports","movie"],
+["Stand By Me",1986,"Drama|Adventure","movie"],
+["The Goonies",1985,"Adventure|Comedy|Family","movie"],
+["Hunt for the Wilderpeople",2016,"Comedy|Adventure|Family","movie"],
+["Life of Pi",2012,"Adventure|Drama|Fantasy","movie"],
+["Cast Away",2000,"Adventure|Drama","movie"],
+["Into the Wild",2007,"Adventure|Drama|Biography","movie"],
+["The Revenant",2015,"Adventure|Drama|Thriller","movie"],
+["Breaking Bad",2008,"Crime|Drama|Thriller","series"],
+["Better Call Saul",2015,"Crime|Drama","series"],
+["The Wire",2002,"Crime|Drama","series"],
+["The Sopranos",1999,"Crime|Drama","series"],
+["Peaky Blinders",2013,"Crime|Drama","series"],
+["Narcos",2015,"Crime|Drama|Biography","series"],
+["Ozark",2017,"Crime|Drama|Thriller","series"],
+["Mindhunter",2017,"Crime|Drama|Thriller","series"],
+["True Detective",2014,"Crime|Mystery|Drama","series"],
+["True Detective: Night Country",2024,"Crime|Mystery|Drama","series"],
+["Fargo",2014,"Crime|Comedy|Drama","series"],
+["You",2018,"Crime|Thriller|Drama","series"],
+["Money Heist",2017,"Crime|Thriller|Drama","series"],
+["Squid Game",2021,"Thriller|Drama|Mystery","series"],
+["Mare of Easttown",2021,"Crime|Drama|Mystery","series"],
+["Sherlock",2010,"Crime|Mystery|Drama","series"],
+["Line of Duty",2012,"Crime|Drama|Thriller","series"],
+["Slow Horses",2022,"Thriller|Drama|Comedy","series"],
+["Griselda",2024,"Crime|Drama|Biography","series"],
+["Ripley",2024,"Crime|Drama|Mystery","series"],
+["Baby Reindeer",2024,"Drama|Thriller","series"],
+["Game of Thrones",2011,"Fantasy|Drama|Action","series"],
+["House of the Dragon",2022,"Fantasy|Drama|Action","series"],
+["The Rings of Power",2022,"Fantasy|Adventure|Drama","series"],
+["The Witcher",2019,"Fantasy|Action|Adventure","series"],
+["Shadow and Bone",2021,"Fantasy|Adventure|Drama","series"],
+["The Last Kingdom",2015,"History|Action|Drama","series"],
+["Vikings",2013,"History|Action|Drama","series"],
+["Rome",2005,"History|Drama|War","series"],
+["Band of Brothers",2001,"War|History|Drama","series"],
+["The Pacific",2010,"War|History|Drama","series"],
+["Masters of the Air",2024,"War|History|Drama","series"],
+["Downton Abbey",2010,"History|Drama|Romance","series"],
+["Bridgerton",2020,"Romance|Drama|History","series"],
+["Outlander",2014,"Romance|Drama|Fantasy","series"],
+["The Crown",2016,"History|Drama|Biography","series"],
+["Shogun",2024,"History|Drama|Action","series"],
+["The Last of Us",2023,"Sci-Fi|Drama|Horror","series"],
+["Stranger Things",2016,"Sci-Fi|Horror|Fantasy","series"],
+["Dark",2017,"Sci-Fi|Mystery|Thriller","series"],
+["3 Body Problem",2024,"Sci-Fi|Drama|Mystery","series"],
+["Severance",2022,"Sci-Fi|Drama|Mystery","series"],
+["Westworld",2016,"Sci-Fi|Drama|Mystery","series"],
+["Black Mirror",2011,"Sci-Fi|Drama|Thriller","series"],
+["The Mandalorian",2019,"Sci-Fi|Action|Adventure","series"],
+["Andor",2022,"Sci-Fi|Action|Drama","series"],
+["Loki",2021,"Sci-Fi|Action|Fantasy","series"],
+["WandaVision",2021,"Sci-Fi|Fantasy|Drama","series"],
+["The Boys",2019,"Action|Comedy|Sci-Fi","series"],
+["Fallout",2024,"Sci-Fi|Action|Adventure","series"],
+["Foundation",2021,"Sci-Fi|Drama","series"],
+["For All Mankind",2019,"Sci-Fi|Drama|History","series"],
+["Avatar: The Last Airbender",2005,"Animation|Fantasy|Adventure","series"],
+["Arcane",2021,"Animation|Fantasy|Action","series"],
+["Attack on Titan",2013,"Animation|Action|Fantasy","series"],
+["Death Note",2006,"Animation|Mystery|Thriller","series"],
+["Cowboy Bebop",1998,"Animation|Sci-Fi|Action","series"],
+["Naruto",2002,"Animation|Action|Adventure","series"],
+["One Piece",1999,"Animation|Action|Adventure","series"],
+["Demon Slayer",2019,"Animation|Action|Fantasy","series"],
+["Jujutsu Kaisen",2020,"Animation|Action|Fantasy","series"],
+["My Hero Academia",2016,"Animation|Action|Fantasy","series"],
+["Rick and Morty",2013,"Animation|Comedy|Sci-Fi","series"],
+["BoJack Horseman",2014,"Animation|Comedy|Drama","series"],
+["The Simpsons",1989,"Animation|Comedy","series"],
+["South Park",1997,"Animation|Comedy","series"],
+["Bluey",2018,"Animation|Family|Comedy","series"],
+["Friends",1994,"Comedy|Romance","series"],
+["Seinfeld",1989,"Comedy","series"],
+["The Office",2005,"Comedy","series"],
+["Parks and Recreation",2009,"Comedy","series"],
+["Brooklyn Nine-Nine",2013,"Comedy|Crime","series"],
+["Community",2009,"Comedy","series"],
+["How I Met Your Mother",2005,"Comedy|Romance","series"],
+["Modern Family",2009,"Comedy","series"],
+["Arrested Development",2003,"Comedy","series"],
+["Curb Your Enthusiasm",2000,"Comedy","series"],
+["Abbott Elementary",2021,"Comedy","series"],
+["Ted Lasso",2020,"Comedy|Drama|Sports","series"],
+["Fleabag",2016,"Comedy|Drama","series"],
+["Barry",2018,"Comedy|Crime|Drama","series"],
+["Better Things",2016,"Comedy|Drama","series"],
+["Atlanta",2016,"Comedy|Drama|Music","series"],
+["Beef",2023,"Comedy|Drama|Thriller","series"],
+["The Bear",2022,"Comedy|Drama","series"],
+["Only Murders in the Building",2021,"Comedy|Mystery|Crime","series"],
+["Schitt's Creek",2015,"Comedy|Drama","series"],
+["Derry Girls",2018,"Comedy|Drama","series"],
+["What We Do in the Shadows",2019,"Comedy|Horror|Fantasy","series"],
+["Succession",2018,"Drama|Comedy","series"],
+["The White Lotus",2021,"Drama|Comedy|Mystery","series"],
+["Big Little Lies",2017,"Drama|Mystery|Thriller","series"],
+["The Handmaid's Tale",2017,"Drama|Sci-Fi|Thriller","series"],
+["Euphoria",2019,"Drama","series"],
+["Fleishman Is in Trouble",2022,"Drama|Comedy","series"],
+["The Diplomat",2023,"Drama|Thriller","series"],
+["The Queen's Gambit",2020,"Drama|Sports","series"],
+["Chernobyl",2019,"Drama|History|Thriller","series"],
+["The Night Of",2016,"Crime|Drama|Mystery","series"],
+["This Is Us",2016,"Drama|Romance","series"],
+["Grey's Anatomy",2005,"Drama|Romance","series"],
+["ER",1994,"Drama","series"],
+["House",2004,"Drama|Mystery","series"],
+["The Walking Dead",2010,"Horror|Drama|Thriller","series"],
+["American Horror Story",2011,"Horror|Drama|Thriller","series"],
+["Hannibal",2013,"Horror|Crime|Thriller","series"],
+["Bates Motel",2013,"Horror|Mystery|Thriller","series"],
+["Yellowstone",2018,"Drama|Western","series"],
+["Justified",2010,"Crime|Drama|Western","series"],
+["Longmire",2012,"Crime|Drama|Western","series"],
+["Big Bang Theory",2007,"Comedy","series"],
+["Sherlock Holmes",2010,"Crime|Mystery","series"],
+["Sex Education",2019,"Comedy|Drama|Romance","series"],
+["Wednesday",2022,"Comedy|Fantasy|Mystery","series"],
+["Umbrella Academy",2019,"Sci-Fi|Action|Fantasy","series"],
+["Daredevil",2015,"Action|Crime|Drama","series"],
+["Oldboy",2003,"Action|Thriller|Mystery","movie"],
+["Memories of Murder",2003,"Crime|Drama|Mystery","movie"],
+["The Handmaiden",2016,"Thriller|Romance|Drama","movie"],
+["Train to Busan",2016,"Horror|Action|Thriller","movie"],
+["City of God",2002,"Crime|Drama","movie"],
+["Amores Perros",2000,"Drama|Thriller","movie"],
+["Roma",2018,"Drama|History","movie"],
+["The Lives of Others",2006,"Drama|Thriller","movie"],
+["Run Lola Run",1998,"Action|Thriller|Drama","movie"],
+["The Intouchables",2011,"Comedy|Drama|Biography","movie"],
+["A Separation",2011,"Drama","movie"],
+["Life Is Beautiful",1997,"Comedy|Drama|War","movie"],
+["Cinema Paradiso",1988,"Drama|Romance","movie"],
+["8½",1963,"Drama|Fantasy","movie"],
+["Seven Samurai",1954,"Action|Adventure|Drama","movie"],
+["Rashomon",1950,"Crime|Drama|Mystery","movie"],
+["Ikiru",1952,"Drama","movie"],
+["In the Mood for Love",2000,"Romance|Drama","movie"],
+["Crouching Tiger, Hidden Dragon",2000,"Action|Adventure|Romance","movie"],
+["House of Flying Daggers",2004,"Action|Romance|Drama","movie"],
+["Hero",2002,"Action|Adventure|Drama","movie"],
+["The Raid 2",2014,"Action|Crime|Thriller","movie"],
+["Ip Man",2008,"Action|Biography|Drama","movie"],
+["RRR",2022,"Action|Adventure|Drama","movie"],
+["3 Idiots",2009,"Comedy|Drama","movie"],
+["Dangal",2016,"Drama|Sports|Biography","movie"],
+["Lagaan",2001,"Drama|Sports|Musical","movie"],
+["Slumdog Millionaire",2008,"Drama|Romance","movie"],
+["The Lunchbox",2013,"Drama|Romance","movie"],
+["Sound of Metal",2019,"Drama|Music","movie"],
+["Tár",2022,"Drama|Music","movie"],
+["Green Book",2018,"Drama|Comedy|Music","movie"],
+["Hidden Figures",2016,"Drama|Biography|History","movie"],
+["Selma",2014,"Drama|History|Biography","movie"],
+["The Help",2011,"Drama|History","movie"],
+["Argo",2012,"Thriller|Drama|History","movie"],
+["Spotlight",2015,"Drama|Biography|Crime","movie"],
+["The Big Short",2015,"Comedy|Drama|Biography","movie"],
+["Vice",2018,"Comedy|Drama|Biography","movie"],
+["Senna",2010,"Documentary|Sports|Biography","movie"],
+["The Social Dilemma",2020,"Documentary","movie"],
+["Blackfish",2013,"Documentary","movie"],
+["Man on Wire",2008,"Documentary|Biography","movie"],
+["Bowling for Columbine",2002,"Documentary","movie"],
+["Fahrenheit 9/11",2004,"Documentary","movie"],
+["An Inconvenient Truth",2006,"Documentary","movie"],
+["Jiro Dreams of Sushi",2011,"Documentary|Biography","movie"],
+["The Act of Killing",2012,"Documentary|Crime","movie"],
+["Exit Through the Gift Shop",2010,"Documentary|Comedy","movie"],
+["Making a Murderer",2015,"Documentary|Crime","series"],
+["Tiger King",2020,"Documentary|Crime","series"],
+["The Last Dance",2020,"Documentary|Sports|Biography","series"],
+["Wild Wild Country",2018,"Documentary","series"],
+["Chef's Table",2015,"Documentary","series"],
+["Planet Earth",2006,"Documentary|Nature","series"],
+["Our Planet",2019,"Documentary|Nature","series"],
+["Cosmos",1980,"Documentary|Sci-Fi","series"],
+["The Vietnam War",2017,"Documentary|History|War","series"],
+["Cosmos: A Spacetime Odyssey",2014,"Documentary|Sci-Fi","series"],
+["The Karate Kid",1984,"Drama|Family|Sports","movie"],
+["Cobra Kai",2018,"Drama|Action|Sports","series"],
+["Friday Night Lights",2006,"Drama|Sports","series"],
+["Cheer",2020,"Documentary|Sports","series"],
+["Drive to Survive",2019,"Documentary|Sports","series"],
+["Warrior",2019,"Action|Drama|Crime","series"],
+["Peacemaker",2022,"Action|Comedy|Sci-Fi","series"],
+["Invincible",2021,"Animation|Action|Sci-Fi","series"],
+["The Legend of Korra",2012,"Animation|Fantasy|Action","series"],
+["Fullmetal Alchemist: Brotherhood",2009,"Animation|Action|Fantasy","series"],
+["Spy x Family",2022,"Animation|Action|Comedy","series"],
+["Chainsaw Man",2022,"Animation|Action|Horror","series"],
+["Mob Psycho 100",2016,"Animation|Comedy|Action","series"],
+["Violet Evergarden",2018,"Animation|Drama|Fantasy","series"],
+["Steins;Gate",2011,"Animation|Sci-Fi|Thriller","series"],
+["Neon Genesis Evangelion",1995,"Animation|Sci-Fi|Drama","series"],
+["Monster",2004,"Animation|Thriller|Mystery","series"],
+["Vinland Saga",2019,"Animation|Action|Adventure","series"],
+["Delicious in Dungeon",2024,"Animation|Fantasy|Comedy","series"],
+["Frieren: Beyond Journey's End",2023,"Animation|Fantasy|Adventure","series"],
+["Solo Leveling",2024,"Animation|Action|Fantasy","series"],
+["The Good Place",2016,"Comedy|Fantasy","series"],
+["Superstore",2015,"Comedy","series"],
+["Ted",2012,"Comedy|Fantasy","movie"],
+["The Mask",1994,"Comedy|Fantasy","movie"],
+["Bruce Almighty",2003,"Comedy|Fantasy","movie"],
+["Click",2006,"Comedy|Fantasy|Drama","movie"],
+["Zombieland",2009,"Comedy|Horror|Action","movie"],
+["Shaun of the Dead",2004,"Comedy|Horror","movie"],
+["Hot Fuzz",2007,"Comedy|Action|Crime","movie"],
+["The World's End",2013,"Comedy|Sci-Fi|Action","movie"],
+["21 Jump Street",2012,"Comedy|Action|Crime","movie"],
+["Game Night",2018,"Comedy|Mystery|Action","movie"],
+["Palm Springs",2020,"Comedy|Romance|Sci-Fi","movie"],
+["The Nice Guys",2016,"Comedy|Crime|Mystery","movie"],
+["In Bruges",2008,"Comedy|Crime|Drama","movie"],
+["Three Billboards Outside Ebbing, Missouri",2017,"Crime|Drama|Comedy","movie"],
+["The Banshees of Inisherin",2022,"Comedy|Drama","movie"],
+["Sound of Freedom",2023,"Crime|Drama|Thriller","movie"],
+["Air",2023,"Drama|Sports|Comedy","movie"],
+["Saltburn",2023,"Drama|Thriller|Comedy","movie"],
+["Fair Play",2023,"Thriller|Drama|Romance","movie"],
+["May December",2023,"Drama","movie"],
+["The Iron Claw",2023,"Drama|Sports|Biography","movie"],
+["Society of the Snow",2023,"Drama|Adventure|Thriller","movie"],
+["Perfect Days",2023,"Drama","movie"],
+["Kinds of Kindness",2024,"Drama|Comedy|Mystery","movie"],
+["Trap",2024,"Thriller|Horror","movie"],
+["Speak No Evil",2024,"Horror|Thriller","movie"],
+["Heretic",2024,"Horror|Thriller","movie"],
+["Wicked Little Letters",2023,"Comedy|Crime|Drama","movie"],
+["Emilia Pérez",2024,"Musical|Crime|Drama","movie"],
+["A Real Pain",2024,"Comedy|Drama","movie"],
+["Nickel Boys",2024,"Drama|History","movie"],
+["The Wild Robot",2024,"Animation|Family|Sci-Fi","movie"],
+["Flow",2024,"Animation|Adventure|Fantasy","movie"],
+["Twisters",2024,"Action|Adventure|Thriller","movie"],
+["It Ends with Us",2024,"Drama|Romance","movie"],
+["Blink Twice",2024,"Thriller|Mystery","movie"],
+["Beetlejuice Beetlejuice",2024,"Comedy|Fantasy|Horror","movie"],
+["Kingdom of the Planet of the Apes",2024,"Sci-Fi|Action|Adventure","movie"],
+["Bad Boys: Ride or Die",2024,"Action|Comedy|Crime","movie"],
+["Despicable Me 4",2024,"Animation|Family|Comedy","movie"],
+["Superman",2025,"Action|Sci-Fi|Adventure","movie"],
+["Mission: Impossible - The Final Reckoning",2025,"Action|Thriller|Adventure","movie"],
+["Thunderbolts",2025,"Action|Sci-Fi|Adventure","movie"],
+["Wicked: For Good",2025,"Fantasy|Musical|Romance","movie"],
+["Zootopia 2",2025,"Animation|Family|Comedy","movie"],
+["The Naked Gun",2025,"Comedy|Crime","movie"],
+["A Minecraft Movie",2025,"Animation|Family|Adventure|Comedy","movie"],
+["One Battle After Another",2025,"Action|Drama|Thriller","movie"]
+];
+
+const MOVIES = RAW.map(([title, year, genreStr, type], i) => ({
+  id: i,
+  title, year,
+  type: type || "movie",
+  genres: genreStr.split("|"),
+  color: PALETTE[i % PALETTE.length]
+}));
+
+let watchedIds = [];
+let hiIndex = -1;
+
+const $ = id => document.getElementById(id);
+
+function renderAutocomplete(q){
+  const ac = $('autocomplete');
+  hiIndex = -1;
+  if(!q){ ac.classList.remove('open'); ac.innerHTML=''; return; }
+  const ql = q.toLowerCase();
+  const matches = MOVIES
+    .filter(m => !watchedIds.includes(m.id) && m.title.toLowerCase().includes(ql))
+    .slice(0, 8);
+  if(!matches.length){
+    ac.innerHTML = `<div class="ac-empty">No titles match "${q}" in the catalog.</div>`;
+    ac.classList.add('open');
+    return;
+  }
+  ac.innerHTML = matches.map(m => `
+    <div class="ac-item" data-id="${m.id}">
+      <div><span class="t">${m.title}</span><span class="g">${m.genres.join(' · ')}</span></div>
+      <span class="y"><span class="badge ${m.type}">${m.type}</span>${m.year}</span>
+    </div>
+  `).join('');
+  ac.classList.add('open');
+  ac.querySelectorAll('.ac-item').forEach(el => {
+    el.addEventListener('click', () => addWatched(parseInt(el.dataset.id)));
+  });
+}
+
+function addWatched(id){
+  if(!watchedIds.includes(id)) watchedIds.push(id);
+  $('search').value = '';
+  renderAutocomplete('');
+  $('search').focus();
+  renderWatched();
+  updateRecommendations();
+}
+
+function removeWatched(id){
+  watchedIds = watchedIds.filter(x => x !== id);
+  renderWatched();
+  updateRecommendations();
+}
+
+function renderWatched(){
+  const wrap = $('watched');
+  if(!watchedIds.length){
+    wrap.innerHTML = '';
+    $('hint').style.display = 'block';
+    return;
+  }
+  $('hint').style.display = 'none';
+  wrap.innerHTML = watchedIds.map(id => {
+    const m = MOVIES.find(x => x.id === id);
+    return `<span class="pill"><span class="badge ${m.type}">${m.type}</span> ${m.title} <button data-id="${id}">×</button></span>`;
+  }).join('');
+  wrap.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => removeWatched(parseInt(btn.dataset.id)));
+  });
+}
+
+function updateRecommendations(){
+  const section = $('resultsSection');
+  if(!watchedIds.length){
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+
+  const watchedMovies = watchedIds.map(id => MOVIES.find(m => m.id === id));
+  const profile = {};
+  watchedMovies.forEach(m => m.genres.forEach(g => { profile[g] = (profile[g]||0) + 1; }));
+
+  const topGenres = Object.entries(profile).sort((a,b) => b[1]-a[1]);
+  $('profileBanner').innerHTML =
+    `<span class="label">Your taste profile</span>` +
+    topGenres.map(([g,c]) => `<span class="gchip">${g} ×${c}</span>`).join('');
+
+  const scored = MOVIES
+    .filter(m => !watchedIds.includes(m.id))
+    .map(m => {
+      const matched = m.genres.filter(g => profile[g]);
+      const score = matched.reduce((s,g) => s + profile[g], 0);
+      return {movie: m, score, matched};
+    })
+    .filter(r => r.score > 0)
+    .sort((a,b) => b.score - a.score || b.movie.year - a.movie.year)
+    .slice(0, 10);
+
+  const stubs = $('stubs');
+  if(!scored.length){
+    stubs.innerHTML = '<div class="empty">No genre overlaps found yet — add a movie with a more common genre.</div>';
+    return;
+  }
+  const maxScore = scored[0].score;
+  stubs.innerHTML = scored.map(r => {
+    const pct = Math.min(100, Math.round((r.score / maxScore) * 100));
+    const chips = r.matched.map(g => `<span class="chip">${g} ×${profile[g]}</span>`).join('');
+    return `
+      <div class="stub">
+        <div class="side" style="background:${r.movie.color}"><span class="pct">${pct}%</span></div>
+        <div class="body">
+          <p class="title">${r.movie.title} <span class="badge ${r.movie.type}">${r.movie.type}</span></p>
+          <p class="yr">${r.movie.year}</p>
+          <div class="reasons">${chips}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+$('search').addEventListener('input', e => renderAutocomplete(e.target.value.trim()));
+$('search').addEventListener('keydown', e => {
+  const ac = $('autocomplete');
+  const items = Array.from(ac.querySelectorAll('.ac-item'));
+  if(!items.length) return;
+  if(e.key === 'ArrowDown'){ e.preventDefault(); hiIndex = Math.min(hiIndex+1, items.length-1); items.forEach((el,i)=>el.classList.toggle('hi', i===hiIndex)); }
+  else if(e.key === 'ArrowUp'){ e.preventDefault(); hiIndex = Math.max(hiIndex-1, 0); items.forEach((el,i)=>el.classList.toggle('hi', i===hiIndex)); }
+  else if(e.key === 'Enter' && hiIndex >= 0){ e.preventDefault(); addWatched(parseInt(items[hiIndex].dataset.id)); }
+});
+document.addEventListener('click', e => {
+  if(!e.target.closest('.picker')) $('autocomplete').classList.remove('open');
+});
+
+renderWatched();
+</script>
+
+</body>
+</html>
