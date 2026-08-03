@@ -13,6 +13,7 @@ A collection of small web-based projects built with HTML, CSS, and JavaScript �
 - [Word Attack](https://Andrew-Fernando-15.github.io/Projects/wordattack-game/index.html)
 - [QrGen — URl to QR Generator](https://Andrew-Fernando-15.github.io/Projects/URL%20to%20QR%20Generator/index.html)
 - [Movie Recommendation System](https://Andrew-Fernando-15.github.io/Projects/movie-recommendation-system/index.html)
+- [Suiji](https://Andrew-Fernando-15.github.io/Projects/suiji-game/index.html)
 
 ## 📂 Structure
 
@@ -27,6 +28,7 @@ Projects/<br>
 ├── portfolio-Docker/<br>
 ├── URL to QR Generator/<br>
 ├── Movie Recommendation System/<br>
+├── Suiji-game/<br>
 └── README.md<br>
 
 
